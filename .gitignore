@@ -1,0 +1,35 @@
+# Hệ thống & bảo mật
+.ssh/
+.cache/
+.config/
+.docker/
+.local/
+.pip/
+.bash_history
+.bashrc
+.profile
+.selected_editor
+.viminfo
+.wget-hsts
+.lesshst
+.git-credentials
+snap/
+vmware-tools-distrib/
+ssl_certs/
+fullchain.pem
+authorized_keys
+*.pem
+*.tar.gz*
+*.jar
+*.log
+install_*.sh
+run.sh
+
+# Pterodactyl không liên quan
+pterodactyl-alpine/
+pterodactyl-debian/
+pterodactyl-debianpe/
+pterodactyl-installers-debianpe/
+
+# Adoptium (đã xoá)
+*-adoptium/

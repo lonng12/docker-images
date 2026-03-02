@@ -1,0 +1,56 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: 103.176.24.13:5000
+
+jobs:
+  build-aio:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [8, 11, 16, 17, 18, 19, 21, 24, 25]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./aio-${{ matrix.java }}/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/aio-${{ matrix.java }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-java:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [8, 11, 16, 17, 18, 19, 21, 22, 23, 24, 25]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./pterodactyl-java${{ matrix.java }}/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/pterodactyl-java${{ matrix.java }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

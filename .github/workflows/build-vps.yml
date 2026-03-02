@@ -1,0 +1,70 @@
+name: Build VPS Images
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: 103.176.24.13:5000
+
+jobs:
+  build-python:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./python/${{ matrix.version }}
+          push: true
+          tags: ${{ env.REGISTRY }}/python${{ matrix.version }}:latest
+
+  build-pterodactyl-java:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [8, 11, 16, 17, 18, 19, 21, 22, 23, 24, 25]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./pterodactyl-java${{ matrix.version }}
+          push: true
+          tags: ${{ env.REGISTRY }}/pterodactyl-java${{ matrix.version }}:latest
+
+  build-vpsbumboo:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [8, 11, 16, 17, 18, 19, 21, 22, 23, 25]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./vpsbumboo/pterodactyl-java${{ matrix.version }}
+          push: true
+          tags: ${{ env.REGISTRY }}/pterodactyl-java${{ matrix.version }}-vpsbumboo:latest
