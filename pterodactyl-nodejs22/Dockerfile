@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get upgrade -y \
     && apt-get -y install iptables apt-utils curl ffmpeg software-properties-common apt-transport-https ca-certificates wget dirmngr gnupg iproute2 sqlite3 libopus0 make g++ locales git cmake zip unzip libtool-bin autoconf automake curl jq \
