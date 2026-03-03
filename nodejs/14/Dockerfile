@@ -2,13 +2,11 @@ FROM        --platform=$TARGETOS/$TARGETARCH node:14-bullseye-slim
 
 LABEL       author="Michael Parker" maintainer="parker@pterodactyl.io"
 
-# add container user and set stop signal
 RUN         useradd -m -d /home/container container
 STOPSIGNAL  SIGINT
 
 RUN         apt update \
             && apt -y install \
-                ffmpeg \
                 iproute2 \
                 git \
                 sqlite3 \

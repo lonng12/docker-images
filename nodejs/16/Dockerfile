@@ -1,14 +1,12 @@
-FROM        --platform=$TARGETOS/$TARGETARCH node:16-bookworm-slim
+FROM        --platform=$TARGETOS/$TARGETARCH node:16-bullseye-slim
 
 LABEL       author="Michael Parker" maintainer="parker@pterodactyl.io"
 
-# add container user and set stop signal
 RUN         useradd -m -d /home/container container
 STOPSIGNAL  SIGINT
 
 RUN         apt update \
             && apt -y install \
-                ffmpeg \
                 iproute2 \
                 git \
                 sqlite3 \
@@ -27,7 +25,7 @@ RUN         apt update \
                 libnss3 \
                 tini
 
-RUN         npm install --global npm@9.x.x typescript ts-node @types/node
+RUN         npm install --global npm@latest typescript ts-node @types/node
 
 USER        container
 ENV         USER=container HOME=/home/container
