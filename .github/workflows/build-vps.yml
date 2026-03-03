@@ -68,3 +68,23 @@ jobs:
           context: ./vpsbumboo/pterodactyl-java${{ matrix.version }}
           push: true
           tags: ${{ env.REGISTRY }}/pterodactyl-java${{ matrix.version }}-vpsbumboo:latest
+
+  build-nodejs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [12, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [registry."103.176.24.13:5000"]
+              http = true
+              insecure = true
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./nodejs/${{ matrix.version }}
+          push: true
+          tags: ${{ env.REGISTRY }}/nodejs${{ matrix.version }}:latest

@@ -33,3 +33,4 @@ pterodactyl-installers-debianpe/
 
 # Adoptium (đã xoá)
 *-adoptium/
+.gitconfig
