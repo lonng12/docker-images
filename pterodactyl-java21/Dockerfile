@@ -26,7 +26,8 @@ RUN apt-get update && \
         iproute2 \
         libstdc++6 \
         autoconf \
-        cmake && \
+        cmake \
+        jq && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /opt /tmp/jprof /tmp/nmt /tmp/pmap /diagnostic

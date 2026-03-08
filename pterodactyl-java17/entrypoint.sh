@@ -18,10 +18,10 @@ export JAVA_HOME="/opt/java/${JDK_VENDOR}"
 # Check if the selected JDK vendor exists
 if [ ! -d "${JAVA_HOME}" ]; then
     echo "ERROR: JDK vendor '${JDK_VENDOR}' is not available in this image."
-    echo "Available vendors:"
+    echo "Các nhà cung cấp có sẵn:"
     ls -1 /opt/java/ 2>/dev/null || echo "  (none found)"
     echo ""
-    echo "Please set JDK_VENDOR to one of the available options."
+    echo "Vui lòng đặt JDK_VENDOR thành một trong các tùy chọn có sẵn."
     exit 1
 fi
 
