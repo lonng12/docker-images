@@ -17,6 +17,9 @@ printf "\033[1m\033[38;5;208m 🌐\u00A0\u00A0GAMEHOSTING.VN\u00A0\u00A0🌐 \03
 java -version
 JAVA_MAJOR_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F '.' '{print $1}')
 
+# Fix lỗi integer expression expected
+JAVA_MAJOR_VERSION=${JAVA_MAJOR_VERSION:-0}
+
 # ====== CONFIGS ==============================================================
 SERVERMONITOR_URL="https://file.dptcloud.vn"
 SERVERMONITOR_FILENAME="ServerMonitor-1.1.5.jar"
@@ -501,7 +504,7 @@ if [[ "$OVERRIDE_STARTUP" == "1" ]]; then
             XMS_VAL=$XMS_MEMORY
         fi
     fi
-    if [[ -z "$DATE_FORMAT" || "$DATE_FORMAT" -eq 0 ]]; then
+    if [[ -z "$DATE_FORMAT" || "${DATE_FORMAT:-0}" -eq 0 ]]; then
         XMX_VAL=$((SERVER_MEMORY - 1024))
     else
         XMX_VAL=$((DATE_FORMAT - 1024))
