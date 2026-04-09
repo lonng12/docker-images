@@ -89,29 +89,29 @@ send_malware_report() {
 
     echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Đang gửi kết quả quét lên panel..."
 
-    local payload=$( cat <<ENDOFPAYLOAD
-{
-    "webhook_secret": "${PANEL_WEBHOOK_SECRET}",
-    "server_uuid": "${P_SERVER_UUID}",
-    "scan_type": "${scan_type}",
-    "summary": {
-        "critical": ${critical_count:-0},
-        "high": ${high_count:-0},
-        "moderate": ${moderate_count:-0},
-        "low": ${low_count:-0}
-    },
-    "plugins": ${plugins_json:-"[]"}
-}
-ENDOFPAYLOAD
-    )
+    # Dùng printf + temp file để tránh bash mangle ký tự đặc biệt (#!@#)
+    local tmpfile
+    tmpfile=$(mktemp /tmp/malware_report.XXXXXX.json)
+
+    printf '{"webhook_secret":"%s","server_uuid":"%s","scan_type":"%s","summary":{"critical":%d,"high":%d,"moderate":%d,"low":%d},"plugins":%s}' \
+        "$PANEL_WEBHOOK_SECRET" \
+        "$P_SERVER_UUID" \
+        "$scan_type" \
+        "${critical_count:-0}" \
+        "${high_count:-0}" \
+        "${moderate_count:-0}" \
+        "${low_count:-0}" \
+        "${plugins_json:-[]}" > "$tmpfile"
 
     local response
     response=$(curl -s -w "\n%{http_code}" -X POST \
         "${PANEL_URL}/api/server/malware-report" \
         -H "Content-Type: application/json" \
-        -d "$payload" \
+        -d @"$tmpfile" \
         --connect-timeout 10 \
         --max-time 15 2>/dev/null)
+
+    rm -f "$tmpfile" 2>/dev/null
 
     local http_code
     http_code=$(echo "$response" | tail -n1)
