@@ -407,6 +407,8 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                 
                 # ====== GỬI KẾT QUẢ QUÉT LÊN PANEL (NOTIFICATION) ==============
                 # Build JSON array các plugin từ scan output
+                # Hàm strip ANSI escape codes
+                strip_ansi() { sed 's/\x1b\[[0-9;]*m//g' | sed 's/\x1b\[K//g'; }
                 REPORT_PLUGINS_JSON="["
                 REPORT_FIRST=1
                 REPORT_P_NAME=""
@@ -419,11 +421,11 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                         if [ -n "$REPORT_P_NAME" ]; then
                             [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
                             REPORT_FIRST=0
-                            R_ESC_NAME=$(echo "$REPORT_P_NAME" | sed 's/"/\\"/g')
-                            R_ESC_DET=$(echo "$REPORT_P_DETAILS" | sed 's/"/\\"/g')
+                            R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | sed 's/"/\\"/g')
+                            R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | sed 's/"/\\"/g')
                             REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
                         fi
-                        REPORT_P_NAME=$(echo "$rline" | sed 's/.*"\([^"]*\)".*/\1/' | sed 's|.*/||')
+                        REPORT_P_NAME=$(echo "$rline" | strip_ansi | sed 's/.*"\([^"]*\)".*/\1/' | sed 's|.*/||')
                         REPORT_P_CRITICAL=0
                         REPORT_P_HIGH=0
                         REPORT_P_DETAILS=""
@@ -445,8 +447,8 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                 # Flush plugin cuối
                 if [ -n "$REPORT_P_NAME" ]; then
                     [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
-                    R_ESC_NAME=$(echo "$REPORT_P_NAME" | sed 's/"/\\"/g')
-                    R_ESC_DET=$(echo "$REPORT_P_DETAILS" | sed 's/"/\\"/g')
+                    R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | sed 's/"/\\"/g')
+                    R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | sed 's/"/\\"/g')
                     REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
                 fi
                 REPORT_PLUGINS_JSON+="]"
