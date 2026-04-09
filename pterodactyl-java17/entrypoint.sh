@@ -451,10 +451,13 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                     R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | sed 's/"/\\"/g')
                     REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
                 fi
-                REPORT_PLUGINS_JSON+="]"
+                REPORT_PLUGINS_JSON_PARTIAL="$REPORT_PLUGINS_JSON"
 
-                # Gửi report lên panel
-                send_malware_report "PluginScan" "$CRITICAL_COUNT" "$HIGH_COUNT" "$MODERATE_COUNT" "$LOW_COUNT" "$REPORT_PLUGINS_JSON"
+                # Lưu kết quả PluginScan — sẽ gộp với PearlScanner rồi gửi 1 lần
+                SAVED_CRITICAL=$CRITICAL_COUNT
+                SAVED_HIGH=$HIGH_COUNT
+                SAVED_MODERATE=$MODERATE_COUNT
+                SAVED_LOW=$LOW_COUNT
 
                 # Dọn dẹp PluginScan.jar nếu cần
                 if [[ "$PLUGINSCAN_CLEANUP" == "1" ]]; then
@@ -760,7 +763,40 @@ if [[ "$OVERRIDE_STARTUP" == "1" ]]; then
     env ${PARSED}
     RUN_EXIT=$?
 
-    # Sau khi server dừng — dọn Pearl nếu cần
+    # Sau khi server dừng — gộp PluginScan + PearlScanner rồi gửi 1 notification
+    MALWARE_FILE="./plugins/malware_plugins.txt"
+    COMBINED_JSON="$REPORT_PLUGINS_JSON_PARTIAL"
+    COMBINED_CRITICAL=${SAVED_CRITICAL:-0}
+    COMBINED_HIGH=${SAVED_HIGH:-0}
+    COMBINED_MODERATE=${SAVED_MODERATE:-0}
+    COMBINED_LOW=${SAVED_LOW:-0}
+    
+    if [[ "$PEARL_SCANNER" == "1" ]] && [ -f "$MALWARE_FILE" ]; then
+        PEARL_INFECTED_COUNT=$(wc -l < "$MALWARE_FILE" | tr -d ' ')
+        
+        if [ "$PEARL_INFECTED_COUNT" -gt 0 ]; then
+            echo -e "${LOG_PREFIX} \u00A0\u00A0🛡️\u00A0\u00A0 PearlScanner phát hiện ${PEARL_INFECTED_COUNT} plugin bị nhiễm L/M/X backdoor"
+            COMBINED_CRITICAL=$((COMBINED_CRITICAL + PEARL_INFECTED_COUNT))
+            
+            # Append PearlScanner results vào JSON đã có từ PluginScan
+            while IFS= read -r pname; do
+                pname=$(echo "$pname" | tr -d '\r\n')
+                if [ -n "$pname" ]; then
+                    [ -n "$COMBINED_JSON" ] && COMBINED_JSON+=","
+                    pname_esc=$(echo "$pname" | sed 's/"/\\"/g')
+                    COMBINED_JSON+="{\"name\":\"${pname_esc}\",\"critical\":1,\"high\":0,\"details\":\"L/M/X Backdoor - Da duoc PearlScanner go bo tu dong\"}"
+                fi
+            done < "$MALWARE_FILE"
+        fi
+    fi
+    
+    # Gửi 1 notification gộp (PluginScan + PearlScanner)
+    if [ -n "$COMBINED_JSON" ]; then
+        COMBINED_JSON="[${COMBINED_JSON}]"
+        send_malware_report "PluginScan + PearlScanner" "$COMBINED_CRITICAL" "$COMBINED_HIGH" "$COMBINED_MODERATE" "$COMBINED_LOW" "$COMBINED_JSON"
+    fi
+
+    # Dọn Pearl nếu cần
     if [[ "$PEARL_SCANNER" == "1" && "$PEARL_CLEANUP" == "1" ]]; then
         echo -e "${LOG_PREFIX} \u00A0\u00A0🧹\u00A0\u00A0 Dọn dẹp PearlScanner.jar sau khi máy chủ dừng..."
         rm -f ./PearlScanner.jar 2>/dev/null || true
