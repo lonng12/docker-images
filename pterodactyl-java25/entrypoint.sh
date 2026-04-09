@@ -19,7 +19,7 @@ export JAVA_HOME="/opt/java/${JDK_VENDOR}"
 if [ ! -d "${JAVA_HOME}" ]; then
     echo "ERROR: JDK vendor '${JDK_VENDOR}' is not available in this image."
     echo "Các nhà cung cấp có sẵn:"
-    ls -1 /opt/java/ 2>/dev/null || echo "  (không tìm thấy)"
+    ls -1 /opt/java/ 2>/dev/null || echo "  (none found)"
     echo ""
     echo "Vui lòng đặt JDK_VENDOR thành một trong các tùy chọn có sẵn."
     exit 1
@@ -67,6 +67,61 @@ PLUGINSCAN_URL=${PLUGINSCAN_URL:-"https://github.com/Rikonardo/PluginScan/releas
 PLUGINSCAN_JAR="PluginScan.jar"
 # Xoá PluginScan.jar sau khi scan xong (0/1)
 PLUGINSCAN_CLEANUP=${PLUGINSCAN_CLEANUP:-1}
+
+# Panel notification config
+PANEL_URL=${PANEL_URL:-"https://panel.gamehosting.vn"}
+PANEL_WEBHOOK_SECRET=${PANEL_WEBHOOK_SECRET:-"DPTCLOUD2025@134#!@#"}
+
+# ====== HÀM GỬI KẾT QUẢ QUÉT LÊN PANEL ====================================
+send_malware_report() {
+    local scan_type="$1"
+    local critical_count="$2"
+    local high_count="$3"
+    local moderate_count="$4"
+    local low_count="$5"
+    local plugins_json="$6"
+
+    # P_SERVER_UUID được Pterodactyl Wings tự inject vào container
+    if [ -z "$P_SERVER_UUID" ]; then
+        echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Không có P_SERVER_UUID — bỏ qua gửi report lên panel"
+        return
+    fi
+
+    echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Đang gửi kết quả quét lên panel..."
+
+    local payload=$( cat <<ENDOFPAYLOAD
+{
+    "webhook_secret": "${PANEL_WEBHOOK_SECRET}",
+    "server_uuid": "${P_SERVER_UUID}",
+    "scan_type": "${scan_type}",
+    "summary": {
+        "critical": ${critical_count:-0},
+        "high": ${high_count:-0},
+        "moderate": ${moderate_count:-0},
+        "low": ${low_count:-0}
+    },
+    "plugins": ${plugins_json:-"[]"}
+}
+ENDOFPAYLOAD
+    )
+
+    local response
+    response=$(curl -s -w "\n%{http_code}" -X POST \
+        "${PANEL_URL}/api/server/malware-report" \
+        -H "Content-Type: application/json" \
+        -d "$payload" \
+        --connect-timeout 10 \
+        --max-time 15 2>/dev/null)
+
+    local http_code
+    http_code=$(echo "$response" | tail -n1)
+    
+    if [ "$http_code" = "200" ]; then
+        echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Đã gửi kết quả quét lên panel thành công"
+    else
+        echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Không thể gửi kết quả lên panel (HTTP: ${http_code})"
+    fi
+}
 
 # ====== SERVERMONITOR AUTO-UPDATE ===========================================
 if [ -d "$PLUGINS_DIR" ]; then
@@ -350,6 +405,55 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                 #     exit 1
                 # fi
                 
+                # ====== GỬI KẾT QUẢ QUÉT LÊN PANEL (NOTIFICATION) ==============
+                # Build JSON array các plugin từ scan output
+                REPORT_PLUGINS_JSON="["
+                REPORT_FIRST=1
+                REPORT_P_NAME=""
+                REPORT_P_CRITICAL=0
+                REPORT_P_HIGH=0
+                REPORT_P_DETAILS=""
+
+                while IFS= read -r rline; do
+                    if [[ "$rline" == *"Processing file"* ]]; then
+                        if [ -n "$REPORT_P_NAME" ]; then
+                            [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
+                            REPORT_FIRST=0
+                            R_ESC_NAME=$(echo "$REPORT_P_NAME" | sed 's/"/\\"/g')
+                            R_ESC_DET=$(echo "$REPORT_P_DETAILS" | sed 's/"/\\"/g')
+                            REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
+                        fi
+                        REPORT_P_NAME=$(echo "$rline" | sed 's/.*"\([^"]*\)".*/\1/' | sed 's|.*/||')
+                        REPORT_P_CRITICAL=0
+                        REPORT_P_HIGH=0
+                        REPORT_P_DETAILS=""
+                    elif [[ "$rline" =~ CRITICAL ]]; then
+                        ((REPORT_P_CRITICAL++))
+                        if [[ "$rline" == *"Runtime.exec()"* ]]; then
+                            REPORT_P_DETAILS="Có thể thực thi lệnh hệ thống"
+                        elif [[ "$rline" == *"system commands"* ]]; then
+                            REPORT_P_DETAILS="Thực thi lệnh hệ thống"
+                        fi
+                    elif [[ "$rline" =~ ^[[:space:]]*HIGH ]] && [[ ! "$rline" =~ CRITICAL ]]; then
+                        ((REPORT_P_HIGH++))
+                        if [[ "$rline" == *"ClassLoader"* ]] || [[ "$rline" == *"URLClassLoader"* ]]; then
+                            REPORT_P_DETAILS="Tải mã Java động"
+                        fi
+                    fi
+                done <<< "$SCAN_OUTPUT"
+
+                # Flush plugin cuối
+                if [ -n "$REPORT_P_NAME" ]; then
+                    [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
+                    R_ESC_NAME=$(echo "$REPORT_P_NAME" | sed 's/"/\\"/g')
+                    R_ESC_DET=$(echo "$REPORT_P_DETAILS" | sed 's/"/\\"/g')
+                    REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
+                fi
+                REPORT_PLUGINS_JSON+="]"
+
+                # Gửi report lên panel
+                send_malware_report "PluginScan" "$CRITICAL_COUNT" "$HIGH_COUNT" "$MODERATE_COUNT" "$LOW_COUNT" "$REPORT_PLUGINS_JSON"
+
                 # Dọn dẹp PluginScan.jar nếu cần
                 if [[ "$PLUGINSCAN_CLEANUP" == "1" ]]; then
                     echo -e "${LOG_PREFIX} \u00A0\u00A0🧹\u00A0\u00A0 Dọn dẹp PluginScan.jar..."
@@ -662,10 +766,9 @@ if [[ "$OVERRIDE_STARTUP" == "1" ]]; then
     fi
 
     # Exit logs
-    printf "\033[1m\033[32m✅\u00A0 Máy chủ đã dừng. \u00A0✅\033[0m\n"
-    printf "\033[1m\033[31m📞\u00A0 Nếu có lỗi, liên hệ Discord/Facebook DPTCloud.\u00A0📞\033[0m\n"
+    printf "\033[1m\033[32m\u00A0 Máy chủ đã dừng. \u00A0\033[0m\n"
+    printf "\033[1m\033[31m\u00A0 Nếu có lỗi, liên hệ Discord/Facebook DPTCloud.\u00A0📞\033[0m\n"
     printf "\033[1m\033[36mDiscord: https://discord.gamehosting.vn/\033[0m\n"
-    printf "\033[1m\033[36mFacebook: https://www.facebook.com/dptcloud/\033[0m\n"
 
     exit $RUN_EXIT
 fi

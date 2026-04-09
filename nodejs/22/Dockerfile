@@ -27,8 +27,8 @@ RUN         apt update \
                 libnss3 \
                 tini
 
-RUN         npm install --global npm@latest typescript ts-node @types/node
-
+RUN         npm install -g npm@latest && \
+            npm install -g typescript ts-node @types/node
 # install pnpm
 RUN         npm install -g corepack
 RUN         corepack enable
