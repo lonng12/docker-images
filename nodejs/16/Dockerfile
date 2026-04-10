@@ -1,12 +1,11 @@
 FROM        --platform=$TARGETOS/$TARGETARCH node:16-bullseye-slim
-
 LABEL       author="Michael Parker" maintainer="parker@pterodactyl.io"
-
 RUN         useradd -m -d /home/container container
 STOPSIGNAL  SIGINT
-
-RUN         apt update \
-            && apt -y install \
+RUN         echo "deb http://archive.debian.org/debian bullseye main" > /etc/apt/sources.list \
+            && echo "deb http://archive.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list \
+            && apt-get update -o Acquire::Check-Valid-Until=false \
+            && apt-get -y install --no-install-recommends -o Acquire::Check-Valid-Until=false \
                 iproute2 \
                 git \
                 sqlite3 \
@@ -23,15 +22,13 @@ RUN         apt update \
                 libtool \
                 iputils-ping \
                 libnss3 \
-                tini
-
+                tini \
+            && rm -rf /var/lib/apt/lists/*
 RUN         npm install --global npm@9 typescript ts-node @types/node
-
 USER        container
 ENV         USER=container HOME=/home/container
 WORKDIR     /home/container
-
 COPY        --chown=container:container ./../entrypoint.sh /entrypoint.sh
 RUN         chmod +x /entrypoint.sh
-ENTRYPOINT    ["/usr/bin/tini", "-g", "--"]
+ENTRYPOINT  ["/usr/bin/tini", "-g", "--"]
 CMD         ["/entrypoint.sh"]
