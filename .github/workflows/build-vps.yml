@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: java.dragoncity.asia
+  REGISTRY: 103.176.24.13:5000
 
 jobs:
   build-python:
