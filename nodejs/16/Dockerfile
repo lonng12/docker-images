@@ -4,7 +4,6 @@ RUN         useradd -m -d /home/container container
 STOPSIGNAL  SIGINT
 RUN         echo "deb http://archive.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list \
             && echo "deb http://archive.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list \
-            && echo "deb http://archive.debian.org/debian-security bullseye/updates main contrib non-free" >> /etc/apt/sources.list \
             && apt-get -o Acquire::Check-Valid-Until=false update \
             && apt-get -o Acquire::Check-Valid-Until=false -y install --no-install-recommends \
                 iproute2 \
