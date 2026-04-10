@@ -506,9 +506,9 @@ if [[ "$MALWARE_SCAN" == "1" ]]; then
         echo -e "${LOG_PREFIX} \u00A0\u00A0🛡️\u00A0\u00A0 Đang quét phần mềm độc hại (MCAntiMalware)..."
         java -jar /MCAntiMalware.jar --scanDirectory . --singleScan true --disableAutoUpdate true
         if [ $? -eq 0 ]; then
-            echo -e "${LOG_PREFIX} \u00A0\u00A0✅\u00A0\u00A0 Pre-scan thành công"
+            echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Pre-scan thành công"
         else
-            echo -e "${LOG_PREFIX} \u00A0\u00A0❌\u00A0\u00A0 Pre-scan thất bại — dừng khởi động"
+            echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Pre-scan thất bại — dừng khởi động"
             exit 1
         fi
     fi
