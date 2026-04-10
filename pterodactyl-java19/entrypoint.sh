@@ -409,7 +409,7 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                 # Build JSON array các plugin từ scan output
                 # Hàm strip ANSI escape codes
                 strip_ansi() { sed 's/\x1b\[[0-9;]*m//g' | sed 's/\x1b\[K//g'; }
-                REPORT_PLUGINS_JSON="["
+                REPORT_PLUGINS_JSON=""
                 REPORT_FIRST=1
                 REPORT_P_NAME=""
                 REPORT_P_CRITICAL=0
@@ -506,9 +506,9 @@ if [[ "$MALWARE_SCAN" == "1" ]]; then
         echo -e "${LOG_PREFIX} \u00A0\u00A0🛡️\u00A0\u00A0 Đang quét phần mềm độc hại (MCAntiMalware)..."
         java -jar /MCAntiMalware.jar --scanDirectory . --singleScan true --disableAutoUpdate true
         if [ $? -eq 0 ]; then
-            echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Pre-scan thành công"
+            echo -e "${LOG_PREFIX} \u00A0\u00A0✅\u00A0\u00A0 Pre-scan thành công"
         else
-            echo -e "${LOG_PREFIX} \u00A0\u00A0\u00A0\u00A0 Pre-scan thất bại — dừng khởi động"
+            echo -e "${LOG_PREFIX} \u00A0\u00A0❌\u00A0\u00A0 Pre-scan thất bại — dừng khởi động"
             exit 1
         fi
     fi
