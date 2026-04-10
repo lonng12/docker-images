@@ -421,11 +421,11 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                         if [ -n "$REPORT_P_NAME" ]; then
                             [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
                             REPORT_FIRST=0
-                            R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | sed 's/"/\\"/g')
-                            R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | sed 's/"/\\"/g')
+                            R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | tr -d '\r\n' | sed 's/"/\\"/g')
+                            R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | tr -d '\r\n' | sed 's/"/\\"/g')
                             REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
                         fi
-                        REPORT_P_NAME=$(echo "$rline" | strip_ansi | sed 's/.*"\([^"]*\)".*/\1/' | sed 's|.*/||')
+                        REPORT_P_NAME=$(echo "$rline" | strip_ansi | sed 's/.*"\([^"]*\)".*/\1/' | sed 's|.*/||' | tr -d '\r\n')
                         REPORT_P_CRITICAL=0
                         REPORT_P_HIGH=0
                         REPORT_P_DETAILS=""
@@ -447,8 +447,8 @@ if [[ "$PLUGIN_SCAN" == "1" ]]; then
                 # Flush plugin cuối
                 if [ -n "$REPORT_P_NAME" ]; then
                     [ "$REPORT_FIRST" -eq 0 ] && REPORT_PLUGINS_JSON+=","
-                    R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | sed 's/"/\\"/g')
-                    R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | sed 's/"/\\"/g')
+                    R_ESC_NAME=$(echo "$REPORT_P_NAME" | strip_ansi | tr -d '\r\n' | sed 's/"/\\"/g')
+                    R_ESC_DET=$(echo "$REPORT_P_DETAILS" | strip_ansi | tr -d '\r\n' | sed 's/"/\\"/g')
                     REPORT_PLUGINS_JSON+="{\"name\":\"${R_ESC_NAME}\",\"critical\":${REPORT_P_CRITICAL},\"high\":${REPORT_P_HIGH},\"details\":\"${R_ESC_DET}\"}"
                 fi
                 # Gộp kết quả PearlScanner (từ lần quét trước) nếu có
