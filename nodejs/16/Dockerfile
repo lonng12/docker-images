@@ -2,10 +2,11 @@ FROM        --platform=$TARGETOS/$TARGETARCH node:16-bullseye-slim
 LABEL       author="Michael Parker" maintainer="parker@pterodactyl.io"
 RUN         useradd -m -d /home/container container
 STOPSIGNAL  SIGINT
-RUN         echo "deb http://archive.debian.org/debian bullseye main" > /etc/apt/sources.list \
-            && echo "deb http://archive.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list \
-            && apt-get update -o Acquire::Check-Valid-Until=false \
-            && apt-get -y install --no-install-recommends -o Acquire::Check-Valid-Until=false \
+RUN         echo "deb http://archive.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list \
+            && echo "deb http://archive.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list \
+            && echo "deb http://archive.debian.org/debian-security bullseye/updates main contrib non-free" >> /etc/apt/sources.list \
+            && apt-get -o Acquire::Check-Valid-Until=false update \
+            && apt-get -o Acquire::Check-Valid-Until=false -y install --no-install-recommends \
                 iproute2 \
                 git \
                 sqlite3 \
