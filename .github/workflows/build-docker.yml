@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: 103.176.24.13:5000
+  REGISTRY: 103.216.127.187:5000
 
 jobs:
   build-aio:
@@ -20,7 +20,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config-inline: |
-            [registry."103.176.24.13:5000"]
+            [registry."103.216.127.187:5000"]
               http = true
               insecure = true
       - uses: docker/build-push-action@v5
@@ -43,7 +43,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config-inline: |
-            [registry."103.176.24.13:5000"]
+            [registry."103.216.127.187:5000"]
               http = true
               insecure = true
       - uses: docker/build-push-action@v5
