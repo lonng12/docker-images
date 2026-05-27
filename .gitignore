@@ -38,3 +38,20 @@ pterodactyl-installers-debianpe/
 pterodactyl-alpine/
 
 pterodactyl-nodejs*/
+
+# Root user files
+.bash_history
+.bashrc
+.cache/
+.config/
+.docker/
+.git-credentials
+.gitconfig
+.lesshst
+.local/
+.pip/
+.profile
+.selected_editor
+.ssh/
+.viminfo
+.wget-hsts
