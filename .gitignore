@@ -35,3 +35,10 @@ pterodactyl-installers-debianpe/
 *-adoptium/
 .gitconfig
 .gitconfig
+.9router/
+.npm/
+node_modules/
+*.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
