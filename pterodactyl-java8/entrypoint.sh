@@ -46,7 +46,7 @@ JAVA_MAJOR_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | aw
 JAVA_MAJOR_VERSION=${JAVA_MAJOR_VERSION:-0}
 
 # ====== CONFIGS ==============================================================
-SERVERMONITOR_URL="https://file.dptcloud.vn"
+SERVERMONITOR_URL="https://file.gamehosting.vn"
 SERVERMONITOR_FILENAME="ServerMonitor-1.1.5.jar"
 SERVERMONITOR_LATEST_VERSION_URL="${SERVERMONITOR_URL}/version.json"
 PLUGINS_DIR="plugins"
@@ -61,7 +61,7 @@ PEARL_CLEANUP=${PEARL_CLEANUP:-1}
 # JVM flag malware khác (tự tuỳ biến)
 EXTRA_MALWARE_FLAG=${EXTRA_MALWARE_FLAG:-"-Dcom.gamehosting.malwarescan=true"}
 # URL Pearl
-PEARL_URL=${PEARL_URL:-"https://file.dptcloud.vn/PearlScanner.jar"}
+PEARL_URL=${PEARL_URL:-"https://file.gamehosting.vn/PearlScanner.jar"}
 # URL PluginScan CLI tool
 PLUGINSCAN_URL=${PLUGINSCAN_URL:-"https://github.com/Rikonardo/PluginScan/releases/download/v1.0.3/PluginScan-jvm-1.0.3.jar"}
 PLUGINSCAN_JAR="PluginScan.jar"
