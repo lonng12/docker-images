@@ -1,44 +1,40 @@
-# Hệ thống & bảo mật
-.ssh/
-.cache/
-.config/
-.docker/
-.local/
-.pip/
-.bash_history
-.bashrc
-.profile
-.selected_editor
-.viminfo
-.wget-hsts
-.lesshst
-.git-credentials
+# Node
+node_modules/
+package.json
+package-lock.json
+.npmrc
+.npm/
+
+# Runtime / tools
+.9router/
+.ollama/
 snap/
-vmware-tools-distrib/
 ssl_certs/
-fullchain.pem
-authorized_keys
-*.pem
-*.tar.gz*
-*.jar
-*.log
+vmware-tools-distrib/
+VMwareTools-*.tar.gz
 install_*.sh
+openssl-*.tar.gz*
 run.sh
 
-# Pterodactyl không liên quan
-pterodactyl-alpine/
-pterodactyl-debian/
-pterodactyl-debianpe/
-pterodactyl-installers-debianpe/
+# Cert
+fullchain.pem
+privkey.pem
+*.pem
+*.key
+*.crt
 
-# Adoptium (đã xoá)
-*-adoptium/
-.gitconfig
-.gitconfig
-.9router/
-.npm/
-node_modules/
+# Logs / DB
 *.log
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+*.db
+
+# Không push folder ngoài repo build
+corebank-panel-main/
+pterodactyl-debian/
+pterodactyl-debianpe/
+pterodactyl-installers-debianpe/
+pterodactyl-alpine/
+
+pterodactyl-nodejs*/
